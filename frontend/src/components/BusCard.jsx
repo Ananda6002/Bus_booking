@@ -6,7 +6,7 @@ function formatDuration(minutes) {
   return `${h}h ${m}m`;
 }
 
-export default function BusCard({ trip }) {
+export default function BusCard({ trip, passengers }) {
   const navigate = useNavigate();
 
   return (
@@ -54,7 +54,7 @@ export default function BusCard({ trip }) {
           className="btn btn-primary"
           style={{ marginTop: 10, width: "100%" }}
           disabled={trip.availableSeats <= 0}
-          onClick={() => navigate(`/trips/${trip.tripId}/seats`)}
+          onClick={() => navigate(`/trips/${trip.tripId}/seats?passengers=${passengers}`)}
         >
           View Seats
         </button>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import api from "../services/api";
 import SeatMap from "../components/SeatMap";
 import { useAuth } from "../context/AuthContext";
@@ -10,6 +10,8 @@ export default function BookingFlow() {
   const { tripId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const passengerCount = Number(searchParams.get("passengers")) || 1;
 
   const [step, setStep] = useState(1); // 1 = seats, 2 = details & payment
   const [trip, setTrip] = useState(null);
@@ -31,11 +33,25 @@ export default function BookingFlow() {
   const [paying, setPaying] = useState(false);
 
   const loadSeats = () => {
-    return api.get(`/trips/${tripId}/seats`).then((res) => setSeatLayout(res.data.seatLayout));
+    return api.get(`/trips/${tripId}/seats`).then((res) => {
+      setSeatLayout(res.data.seatLayout);
+      const lockedByMe = [];
+      res.data.seatLayout.forEach((row) => {
+        row.forEach((seat) => {
+          if (seat.status === "locked_by_you") {
+            lockedByMe.push(seat.seatNumber);
+          }
+        });
+      });
+      if (lockedByMe.length > 0) {
+        setSelectedSeats(lockedByMe);
+      }
+    });
   };
 
   useEffect(() => {
     setLoading(true);
+    setError("");
     Promise.all([api.get(`/trips/${tripId}`).then((res) => setTrip(res.data.trip)), loadSeats()])
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -55,13 +71,29 @@ export default function BookingFlow() {
   }, [step, secondsLeft]);
 
   const toggleSeat = (seatNumber) => {
-    setSelectedSeats((prev) =>
-      prev.includes(seatNumber) ? prev.filter((s) => s !== seatNumber) : [...prev, seatNumber]
-    );
+    setSelectedSeats((prev) => {
+      if (prev.includes(seatNumber)) {
+        setError("");
+        return prev.filter((s) => s !== seatNumber);
+      }
+      if (prev.length >= passengerCount) {
+        setError(`You selected ${passengerCount} passenger${passengerCount > 1 ? "s" : ""}. Maximum ${passengerCount} seat${passengerCount > 1 ? "s" : ""} can be selected.`);
+        return prev;
+      }
+      setError("");
+      return [...prev, seatNumber];
+    });
   };
 
   const proceedToDetails = async () => {
-    if (selectedSeats.length === 0) return;
+    if (selectedSeats.length === 0) {
+      setError("Please select at least one seat.");
+      return;
+    }
+    if (selectedSeats.length !== passengerCount) {
+      setError(`Please select exactly ${passengerCount} seat${passengerCount > 1 ? "s" : ""} for ${passengerCount} passenger${passengerCount > 1 ? "s" : ""}.`);
+      return;
+    }
     setError("");
     setLocking(true);
     try {
@@ -170,6 +202,12 @@ export default function BookingFlow() {
           <SeatMap seatLayout={seatLayout} selectedSeats={selectedSeats} onToggleSeat={toggleSeat} />
           <div className="card">
             <h4 style={{ marginBottom: 12 }}>Selected seats</h4>
+            <div style={{ marginBottom: 16, fontSize: "0.95rem", color: "var(--ink-soft)", fontWeight: 500 }}>
+              Select {passengerCount} seat{passengerCount > 1 ? "s" : ""} for {passengerCount} passenger{passengerCount > 1 ? "s" : ""}
+              <div style={{ marginTop: 4, fontWeight: 700, color: selectedSeats.length === passengerCount ? "var(--green)" : "var(--amber-deep)" }}>
+                ({selectedSeats.length}/{passengerCount} selected)
+              </div>
+            </div>
             {selectedSeats.length === 0 ? (
               <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem" }}>Tap a seat to select it.</p>
             ) : (
@@ -182,7 +220,7 @@ export default function BookingFlow() {
             <button
               className="btn btn-primary btn-block"
               style={{ marginTop: 14 }}
-              disabled={selectedSeats.length === 0 || locking}
+              disabled={selectedSeats.length !== passengerCount || locking}
               onClick={proceedToDetails}
             >
               {locking ? "Locking seats..." : "Continue"}
