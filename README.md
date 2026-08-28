@@ -48,5 +48,3 @@ cd frontend
 npm install
 npm run dev    # starts the app on http://localhost:5173
 ```
-
-Open http://localhost:5173, search **Mangaluru → Bengaluru** for any date in the next 7 days, pick seats, and walk through the full booking flow.
