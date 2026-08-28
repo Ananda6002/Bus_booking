@@ -10,8 +10,15 @@ export default function BookingFlow() {
   const { tripId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const passengerCount = Number(searchParams.get("passengers")) || 1;
+
+  const setPassengerCount = (newCount) => {
+    setSearchParams((prev) => {
+      prev.set("passengers", newCount);
+      return prev;
+    });
+  };
 
   const [step, setStep] = useState(1); // 1 = seats, 2 = details & payment
   const [trip, setTrip] = useState(null);
@@ -57,6 +64,16 @@ export default function BookingFlow() {
       .finally(() => setLoading(false));
   }, [tripId]);
 
+  // Automatically validate and slice selected seats when passenger count changes
+  useEffect(() => {
+    setSelectedSeats((prev) => {
+      if (prev.length > passengerCount) {
+        return prev.slice(0, passengerCount);
+      }
+      return prev;
+    });
+  }, [passengerCount]);
+
   // Countdown for the seat lock once seats are locked (step 2)
   useEffect(() => {
     if (step !== 2 || secondsLeft === null) return;
@@ -77,7 +94,7 @@ export default function BookingFlow() {
         return prev.filter((s) => s !== seatNumber);
       }
       if (prev.length >= passengerCount) {
-        setError(`You selected ${passengerCount} passenger${passengerCount > 1 ? "s" : ""}. Maximum ${passengerCount} seat${passengerCount > 1 ? "s" : ""} can be selected.`);
+        setError(`You can select only ${passengerCount} seat${passengerCount > 1 ? "s" : ""} for ${passengerCount} passenger${passengerCount > 1 ? "s" : ""}.`);
         return prev;
       }
       setError("");
@@ -203,6 +220,12 @@ export default function BookingFlow() {
           <div className="card">
             <h4 style={{ marginBottom: 12 }}>Selected seats</h4>
             <div style={{ marginBottom: 16, fontSize: "0.95rem", color: "var(--ink-soft)", fontWeight: 500 }}>
+              <div style={{ marginBottom: 10 }}>Passengers:</div>
+              <div className="pax-control" style={{ marginBottom: 16, height: 38 }}>
+                <button type="button" className="pax-btn" onClick={() => setPassengerCount(Math.max(1, passengerCount - 1))} disabled={passengerCount <= 1}>−</button>
+                <span className="pax-display" style={{ minWidth: 60, fontSize: "0.9rem" }}>{passengerCount}</span>
+                <button type="button" className="pax-btn" onClick={() => setPassengerCount(Math.min(6, passengerCount + 1))} disabled={passengerCount >= 6}>+</button>
+              </div>
               Select {passengerCount} seat{passengerCount > 1 ? "s" : ""} for {passengerCount} passenger{passengerCount > 1 ? "s" : ""}
               <div style={{ marginTop: 4, fontWeight: 700, color: selectedSeats.length === passengerCount ? "var(--green)" : "var(--amber-deep)" }}>
                 ({selectedSeats.length}/{passengerCount} selected)

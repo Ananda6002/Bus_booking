@@ -1,27 +1,31 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import api from "../services/api";
 import QRCode from "qrcode";
 
-export default function BookingConfirmation() {
+export default function TicketView() {
   const { bookingId } = useParams();
   const [booking, setBooking] = useState(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
   const [error, setError] = useState("");
   const [qrError, setQrError] = useState("");
-  const [cancelling, setCancelling] = useState(false);
-  const [cancelResult, setCancelResult] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const load = () => {
+  useEffect(() => {
+    setLoading(true);
+    setError("");
     api
-      .get(`/bookings/${bookingId}`)
+      .get(`/bookings/ticket/${bookingId}`)
       .then((res) => {
         setBooking(res.data.booking);
       })
-      .catch((err) => setError(err.message));
-  };
-
-  useEffect(load, [bookingId]);
+      .catch((err) => {
+        setError(err.response?.data?.message || "Invalid or unavailable ticket");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [bookingId]);
 
   useEffect(() => {
     if (!booking) return;
@@ -39,28 +43,29 @@ export default function BookingConfirmation() {
       .catch((err) => setQrError("Failed to generate secure QR code: " + err.message));
   }, [booking]);
 
-  const handleCancel = async () => {
-    if (!confirm("Cancel this booking? Refund amount depends on how close it is to departure.")) return;
-    setCancelling(true);
-    try {
-      const res = await api.post(`/bookings/${bookingId}/cancel`);
-      setCancelResult(res.data);
-      load();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setCancelling(false);
-    }
-  };
-
-  if (error) return <div className="container page-section error-banner">{error}</div>;
-  if (!booking) return <div className="container page-section">Loading ticket...</div>;
+  if (loading) return <div className="container page-section">Verifying ticket details...</div>;
+  
+  if (error || !booking) {
+    return (
+      <div className="container page-section" style={{ textAlign: "center", marginTop: 40 }}>
+        <div className="error-banner" style={{ display: "inline-block", maxWidth: "460px" }}>
+          {error || "Invalid or unavailable ticket"}
+        </div>
+      </div>
+    );
+  }
 
   const { trip } = booking;
 
   return (
     <div className="container page-section">
-      <div className="eticket">
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <div className="status-pill status-confirmed" style={{ fontSize: "0.9rem", padding: "6px 16px" }}>
+          ✓ VERIFIED TICKET
+        </div>
+      </div>
+
+      <div className="eticket" style={{ maxWidth: 500, margin: "0 auto" }}>
         <div className="eticket-head">
           <div>
             <div style={{ fontSize: "0.75rem", opacity: 0.7, textTransform: "uppercase" }}>PNR</div>
@@ -138,44 +143,20 @@ export default function BookingConfirmation() {
           </div>
 
           {qrError && (
-            <div style={{ textAlign: "center", marginTop: 20 }} className="error-banner">
+            <div style={{ textAlign: "center", marginTop: 24 }} className="error-banner">
               {qrError}
             </div>
           )}
 
           {!qrError && qrCodeDataUrl && (
-            <div style={{ textAlign: "center", marginTop: 20 }}>
-              <img src={qrCodeDataUrl} alt="Ticket QR code" width={140} height={140} />
-              <p style={{ fontSize: "0.78rem", color: "var(--ink-soft)", marginTop: 6 }}>
-                Show this QR code to the conductor at boarding
+            <div style={{ textAlign: "center", marginTop: 24, padding: "16px", background: "#f8fafc", borderRadius: "12px", border: "1px dashed var(--border)" }}>
+              <img src={qrCodeDataUrl} alt="Ticket QR code" width={130} height={130} />
+              <p style={{ fontSize: "0.76rem", color: "var(--ink-soft)", marginTop: 6, fontWeight: 500 }}>
+                This is a secure, unique ticket verification QR.
               </p>
             </div>
           )}
-
-          {cancelResult && (
-            <div className="success-banner" style={{ marginTop: 18 }}>
-              Cancelled. Refund of ₹{cancelResult.refundAmount} will be processed
-              {cancelResult.cancellationFee > 0 ? ` (cancellation fee: ₹${cancelResult.cancellationFee})` : ""}.
-            </div>
-          )}
-
-          <div style={{ display: "flex", gap: 12, marginTop: 22 }}>
-            <button className="btn btn-outline" onClick={() => window.print()}>
-              Print / Download
-            </button>
-            {booking.bookingStatus === "confirmed" && (
-              <button className="btn btn-danger" onClick={handleCancel} disabled={cancelling}>
-                {cancelling ? "Cancelling..." : "Cancel booking"}
-              </button>
-            )}
-          </div>
         </div>
-      </div>
-
-      <div style={{ textAlign: "center", marginTop: 20 }}>
-        <Link to="/my-bookings" style={{ color: "var(--amber-deep)", fontWeight: 600 }}>
-          View all my bookings →
-        </Link>
       </div>
     </div>
   );

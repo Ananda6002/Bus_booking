@@ -51,7 +51,7 @@ export default function Home() {
   };
 
   const incrementPax = () => {
-    if (passengers < 6) setPassengers(prev => prev + 1);
+    if (passengers < 10) setPassengers(prev => prev + 1);
   };
 
   const decrementPax = () => {
@@ -118,12 +118,12 @@ export default function Home() {
                 <div className="pax-control">
                   <button type="button" className="pax-btn" onClick={decrementPax} disabled={passengers <= 1}>−</button>
                   <span className="pax-display">{passengers} {passengers === 1 ? "Passenger" : "Passengers"}</span>
-                  <button type="button" className="pax-btn" onClick={incrementPax} disabled={passengers >= 6}>+</button>
+                  <button type="button" className="pax-btn" onClick={incrementPax} disabled={passengers >= 10}>+</button>
                 </div>
               </div>
             </div>
 
-            <button className="btn btn-primary search-submit" type="submit">
+            <button className="btn btn-primary search-submit" color = 'red' type="submit">
               Search Buses
             </button>
           </form>

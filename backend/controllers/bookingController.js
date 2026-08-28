@@ -100,7 +100,8 @@ const createBooking = async (req, res, next) => {
       await Coupon.updateOne({ _id: fareResult.appliedCoupon._id }, { $inc: { usedCount: 1 } });
     }
 
-    const qrPayload = JSON.stringify({ pnr: booking.pnr, bookingId: booking._id.toString() });
+    const clientUrl = process.env.VITE_FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173";
+    const qrPayload = `${clientUrl}/ticket/${booking._id}`;
     const qrCodeDataUrl = await QRCode.toDataURL(qrPayload);
 
     res.status(201).json({
@@ -138,7 +139,8 @@ const getBookingById = async (req, res, next) => {
       return res.status(403).json({ message: "Not authorized to view this booking" });
     }
 
-    const qrPayload = JSON.stringify({ pnr: booking.pnr, bookingId: booking._id.toString() });
+    const clientUrl = process.env.VITE_FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173";
+    const qrPayload = `${clientUrl}/ticket/${booking._id}`;
     const qrCodeDataUrl = await QRCode.toDataURL(qrPayload);
 
     res.json({ booking, qrCodeDataUrl });
@@ -206,4 +208,28 @@ const cancelBooking = async (req, res, next) => {
   }
 };
 
-module.exports = { createBooking, getMyBookings, getBookingById, cancelBooking };
+// GET /api/bookings/ticket/:id (Public Verification route)
+const getPublicTicket = async (req, res, next) => {
+  try {
+    const booking = await Booking.findById(req.params.id).populate({
+      path: "trip",
+      populate: [{ path: "bus" }, { path: "route" }],
+    });
+    if (!booking) {
+      return res.status(404).json({ message: "Invalid or unavailable ticket" });
+    }
+
+    const clientUrl = process.env.VITE_FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173";
+    const qrPayload = `${clientUrl}/ticket/${booking._id}`;
+    const qrCodeDataUrl = await QRCode.toDataURL(qrPayload);
+
+    res.json({ booking, qrCodeDataUrl });
+  } catch (err) {
+    if (err.name === "CastError") {
+      return res.status(404).json({ message: "Invalid or unavailable ticket" });
+    }
+    next(err);
+  }
+};
+
+module.exports = { createBooking, getMyBookings, getBookingById, cancelBooking, getPublicTicket };

@@ -625,7 +625,7 @@ button {
 .bus-door {
   position: absolute;
   top: 80px;
-  right: -4px;
+  left: -4px;
   background: #3182ce;
   color: #fff;
   font-size: 0.65rem;
@@ -635,7 +635,7 @@ button {
   border-radius: 4px 0 0 4px;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
   border: 1px solid #2b6cb0;
   border-right: none;
 }

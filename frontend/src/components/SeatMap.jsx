@@ -17,6 +17,8 @@ export default function SeatMap({ seatLayout, selectedSeats, onToggleSeat }) {
         <div className="bus-door">ENTRY</div>
         
         <div className="bus-front">
+          <div className="windshield" />
+          <div className="cabin-left-space" style={{ width: "40px" }} />
           <div className="driver-area">
             <svg className="steering-wheel" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <circle cx="12" cy="12" r="10"/>
@@ -26,7 +28,6 @@ export default function SeatMap({ seatLayout, selectedSeats, onToggleSeat }) {
             </svg>
             <span className="driver-text">DRIVER</span>
           </div>
-          <div className="windshield" />
         </div>
 
         <div className="bus-cabin">

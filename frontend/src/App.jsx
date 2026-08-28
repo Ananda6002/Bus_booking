@@ -8,6 +8,7 @@ import SearchResults from "./pages/SearchResults";
 import BookingFlow from "./pages/BookingFlow";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import MyBookings from "./pages/MyBookings";
+import TicketView from "./pages/TicketView";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/search" element={<SearchResults />} />
+        <Route path="/ticket/:bookingId" element={<TicketView />} />
         <Route
           path="/trips/:tripId/seats"
           element={
