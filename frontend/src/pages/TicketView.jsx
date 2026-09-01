@@ -20,7 +20,7 @@ export default function TicketView() {
         setBooking(res.data.booking);
       })
       .catch((err) => {
-        setError(err.response?.data?.message || "Invalid or unavailable ticket");
+        setError(err.response?.data?.message || "Ticket not found or invalid QR code.");
       })
       .finally(() => {
         setLoading(false);
@@ -34,7 +34,8 @@ export default function TicketView() {
       setQrError("Configuration Error: VITE_FRONTEND_URL environment variable is missing in production.");
       return;
     }
-    const ticketUrl = `${frontendUrl || "http://localhost:5173"}/ticket/${booking._id}`;
+    const baseUrl = frontendUrl || (typeof window !== "undefined" ? window.location.origin : "http://localhost:5173");
+    const ticketUrl = `${baseUrl}/ticket/${booking._id}`;
     QRCode.toDataURL(ticketUrl)
       .then((url) => {
         setQrCodeDataUrl(url);
