@@ -236,7 +236,7 @@ const run = async () => {
 
   const durationMinutes = 630;
 
-  for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+  for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
     const journeyDate = new Date(today);
 
     journeyDate.setUTCDate(

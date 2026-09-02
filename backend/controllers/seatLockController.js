@@ -17,8 +17,8 @@ const lockSeats = async (req, res, next) => {
     if (!tripId || !Array.isArray(seatNumbers) || seatNumbers.length === 0) {
       return res.status(400).json({ message: "tripId and a non-empty seatNumbers array are required" });
     }
-    if (seatNumbers.length > 6) {
-      return res.status(400).json({ message: "You can book a maximum of 6 seats at a time" });
+    if (seatNumbers.length > 10) {
+      return res.status(400).json({ message: "You can select a maximum of 10 seats per booking" });
     }
 
     const trip = await Trip.findById(tripId);

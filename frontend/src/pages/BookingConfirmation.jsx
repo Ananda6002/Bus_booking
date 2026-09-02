@@ -30,7 +30,8 @@ export default function BookingConfirmation() {
       setQrError("Configuration Error: VITE_FRONTEND_URL environment variable is missing in production.");
       return;
     }
-    const ticketUrl = `${frontendUrl || "http://localhost:5173"}/ticket/${booking._id}`;
+    const baseUrl = frontendUrl || (typeof window !== "undefined" ? window.location.origin : "http://localhost:5173");
+    const ticketUrl = `${baseUrl}/ticket/${booking._id}`;
     QRCode.toDataURL(ticketUrl)
       .then((url) => {
         setQrCodeDataUrl(url);

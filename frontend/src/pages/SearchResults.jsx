@@ -18,6 +18,7 @@ export default function SearchResults() {
   const [sortBy, setSortBy] = useState("");
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [maxPrice, setMaxPrice] = useState(3000);
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -44,12 +45,21 @@ export default function SearchResults() {
 
   return (
     <div className="container page-section">
-      <h2 className="section-title">
-        {from} → {to} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: "1.1rem" }}>· {date}</span>
-      </h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+        <h2 className="section-title" style={{ margin: 0 }}>
+          {from} → {to} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: "1.1rem" }}>· {date}</span>
+        </h2>
+        <button 
+          className="btn btn-outline mobile-filter-toggle" 
+          onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+          style={{ display: "none" }}
+        >
+          {showFiltersMobile ? "Hide Filters" : "Filter & Sort"}
+        </button>
+      </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 24, alignItems: "start" }}>
-        <aside className="filters card">
+      <div className="search-results-layout">
+        <aside className={`filters card ${showFiltersMobile ? "mobile-show" : ""}`}>
           <h3 style={{ fontSize: "1.2rem", marginBottom: 18, borderBottom: "1.5px solid var(--border)", paddingBottom: 10 }}>Filters</h3>
           
           <div className="filter-group">

@@ -20,6 +20,9 @@ const createBooking = async (req, res, next) => {
     if (!tripId || !Array.isArray(passengers) || passengers.length === 0) {
       return res.status(400).json({ message: "tripId and at least one passenger are required" });
     }
+    if (passengers.length > 10) {
+      return res.status(400).json({ message: "You can select a maximum of 10 seats per booking" });
+    }
     if (!contactEmail || !contactPhone || !boardingPoint || !droppingPoint) {
       return res.status(400).json({ message: "Contact details, boarding and dropping points are required" });
     }
@@ -216,7 +219,7 @@ const getPublicTicket = async (req, res, next) => {
       populate: [{ path: "bus" }, { path: "route" }],
     });
     if (!booking) {
-      return res.status(404).json({ message: "Invalid or unavailable ticket" });
+      return res.status(404).json({ message: "Ticket not found or invalid QR code." });
     }
 
     const clientUrl = process.env.VITE_FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173";
@@ -226,7 +229,7 @@ const getPublicTicket = async (req, res, next) => {
     res.json({ booking, qrCodeDataUrl });
   } catch (err) {
     if (err.name === "CastError") {
-      return res.status(404).json({ message: "Invalid or unavailable ticket" });
+      return res.status(404).json({ message: "Ticket not found or invalid QR code." });
     }
     next(err);
   }

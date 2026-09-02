@@ -1064,9 +1064,42 @@ button {
   text-align: center;
 }
 
+.search-results-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.booking-flow-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
 /* ===== Responsive ===== */
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
+  .search-results-layout,
+  .booking-flow-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .mobile-filter-toggle {
+    display: inline-flex !important;
+  }
+
+  .filters.card {
+    display: none;
+  }
+
+  .filters.card.mobile-show {
+    display: block;
+    margin-bottom: 16px;
+  }
+
   .container {
     padding: 0 16px;
   }

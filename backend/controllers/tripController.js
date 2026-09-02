@@ -35,8 +35,48 @@ const searchTrips = async (req, res, next) => {
 
     let trips = await Trip.find(query).populate("bus").populate("route");
 
+    if (trips.length === 0) {
+      // Auto-schedule trips for this date & route so user always gets buses
+      const buses = await Bus.find({});
+      if (buses.length > 0) {
+        const pricingByType = {
+          "AC Sleeper": 1200,
+          "AC Seater": 850,
+          "Non-AC Seater": 550,
+          "AC Semi-Sleeper": 950,
+        };
+        const timesByBus = ["19:30", "21:00", "22:00", "18:00"];
+        const durationMinutes = 630;
+        const newTrips = [];
+
+        for (const route of routes) {
+          for (let busIdx = 0; busIdx < buses.length; busIdx++) {
+            const bus = buses[busIdx];
+            const departureTime = timesByBus[busIdx % timesByBus.length];
+            const [h, m] = departureTime.split(":").map(Number);
+            const arrivalMinutes = h * 60 + m + durationMinutes;
+            const arrivalTime = `${String(Math.floor((arrivalMinutes / 60) % 24)).padStart(2, "0")}:${String(arrivalMinutes % 60).padStart(2, "0")}`;
+
+            newTrips.push({
+              bus: bus._id,
+              route: route._id,
+              journeyDate: dayStart,
+              departureTime,
+              arrivalTime,
+              durationMinutes,
+              basePrice: (pricingByType[bus.busType] || 800) + busIdx * 50,
+              bookedSeats: [],
+              status: "scheduled",
+            });
+          }
+        }
+        await Trip.insertMany(newTrips);
+        trips = await Trip.find(query).populate("bus").populate("route");
+      }
+    }
+
     if (busType) {
-      trips = trips.filter((t) => t.bus.busType === busType);
+      trips = trips.filter((t) => t.bus && t.bus.busType === busType);
     }
 
     let results = trips.map((t) => {
