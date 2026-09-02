@@ -1,4 +1,5 @@
 const Trip = require("../models/Trip");
+const Bus = require("../models/Bus");
 const Route = require("../models/Route");
 const SeatLock = require("../models/SeatLock");
 

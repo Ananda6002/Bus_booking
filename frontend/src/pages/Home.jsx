@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 
 const CITIES = ["Mangaluru", "Bengaluru", "Mysuru", "Chennai", "Hyderabad", "Kochi", "Goa", "Mumbai", "Pune", "Coimbatore"];
 
+function todayISO() {
+  return new Date().toISOString().split("T")[0];
+}
 
 function tomorrowISO() {
   const d = new Date();
@@ -120,7 +123,7 @@ export default function Home() {
               </div>
             </div>
 
-            <button className="btn btn-primary search-submit" type="submit">
+            <button className="btn btn-primary search-submit" color = 'red' type="submit">
               Search Buses
             </button>
           </form>
